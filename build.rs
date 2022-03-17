@@ -28,14 +28,15 @@ fn compile_shaders() {
         .unwrap()
         .map(Result::unwrap)
         .filter(|dir| dir.file_type().unwrap().is_file())
-        .filter(|dir| dir.path().extension() != Some(OsStr::new("spv")))
+        .filter(|dir| dir.path().extension() != Some(OsStr::new("spv")) && dir.path().extension() != Some(OsStr::new("hlsl")))
         .for_each(|dir| {
             let path = dir.path();
             let name = path.file_name().unwrap().to_str().unwrap();
             println!("Found file {:?}.\nCompiling...", path.as_os_str());
 
-            let stage = name.strip_prefix("shader_stage.").unwrap();
-            let output_name = format!("{}.spv", &stage);
+            // this is wrong
+            // let stage = name.strip_prefix("shader_stage.").unwrap();
+            let output_name = format!("{}.spv", &name);
 
             let result = Command::new("glslangValidator")
                 .current_dir(&shader_dir_path)
@@ -45,12 +46,12 @@ fn compile_shaders() {
                 .arg(output_name)
                 .arg("-e")
                 .arg("main")
-                .arg("-S")
-                .arg(stage)
+                // .arg("-S")
+                // .arg(stage)
                 .output();
 
             handle_program_result(result);
-        })
+        });
 }
 
 fn get_shader_source_dir_path() -> PathBuf {
