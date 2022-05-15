@@ -55,7 +55,7 @@ fn compile_shaders() {
 }
 
 fn get_shader_source_dir_path() -> PathBuf {
-    let path = get_root_path().join("assets").join("shaders");
+    let path = get_root_path().join("shaders");
     println!("Shader source directory: {:?}", path.as_os_str());
     path
 }

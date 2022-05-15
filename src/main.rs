@@ -1,4 +1,4 @@
-use cgmath::{vec3, Matrix4};
+use cgmath::{vec3, Matrix4, SquareMatrix};
 use nlvr::lib::{renderinstance::*, ubo::CameraUBO};
 use test_game::lib::camera::Camera;
 use test_game::lib::math;
@@ -9,7 +9,9 @@ use test_game::lib::math;
 use simple_logger::SimpleLogger;
 
 use winit::{
-    event::{ElementState, Event, MouseButton, MouseScrollDelta, WindowEvent},
+    event::{
+        ElementState, Event, KeyboardInput, MouseButton, MouseScrollDelta, ScanCode, WindowEvent,
+    },
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,
 };
@@ -52,11 +54,15 @@ fn main() {
 
     // let mut app = VulkanApp::new(&window,);
 
-    let mut render_instance =
-        RenderInstance::<CameraUBO>::create([window.inner_size().width, window.inner_size().height], &window);
+    let mut render_instance = RenderInstance::<CameraUBO>::create(
+        [window.inner_size().width, window.inner_size().height],
+        &window,
+    );
 
-    let cottage_renderable =
-        render_instance.renderable_from_file("chalet/chalet.obj".to_string(), "chalet/chalet.jpg".to_string());
+    // let cottage_renderable = render_instance.renderable_from_file(
+    //     "chalet/chalet.obj".to_string(),
+    //     Some("chalet/chalet.jpg".to_string()),
+    // );
 
     // let rock_assembly_cliffs_renderable = render_instance.renderable_from_file(
     // "quixel/Rock_Assembly_Cliffs_siEoZ_8K_3d_ms/siEoZ_High.obj".to_string(),
@@ -64,30 +70,53 @@ fn main() {
     // );
     // let fire_pit_renderable = render_instance.renderable_from_file(
     //     "quixel/fire_pit/fire_pit.obj".to_string(),
-    //     "quixel/fire_pit/fire_pit_albedo.jpg".to_string(),
+    //     Some("quixel/fire_pit/fire_pit_albedo.jpg".to_string()),
     // );
 
-    let bunny_renderable = render_instance.renderable_from_cm_file("assets/cm_files/test_output.cm".to_string());
+    let bunny_renderable =
+        render_instance.renderable_from_cm_file("assets/cmfiles/test_output.cm".to_string());
+
+    for idx in 0..1190 {
+        // println!("file: cmfiles/clusters/cluster_{}.obj", idx);
+        let renderable_inst = render_instance.renderable_from_file(
+            format!("cmfiles/clusters/cluster_{}.obj", idx).to_string(),
+            None,
+        );
+        render_instance
+            .get_renderable(renderable_inst)
+            .create_instance(Matrix4::from_translation(vec3(0.5, 0.0, 0.0)));
+    }
 
     let base_rot = Matrix4::from_angle_x(Deg(270.0));
     let transform_0 = Matrix4::from_translation(vec3(0.1, 0.0, -1.0)) * base_rot;
-    let transform_1 = Matrix4::from_translation(vec3(0.1, 0.0, 1.0)) * Matrix4::from_scale(0.01);
-    // let transform_2 = Matrix4::from_translation(vec3(0.0, 0.0, 0.0)) * base_rot * Matrix4::from_scale(0.01);
+    // let transform_1 = Matrix4::from_translation(vec3(0.1, 0.0, 1.0)) * Matrix4::from_scale(1.0);
+    let transform_1 = Matrix4::from_scale(1.0);
+    let transform_2 =
+        Matrix4::from_translation(vec3(0.1, 0.0, 1.0)) * base_rot * Matrix4::from_scale(0.01);
 
-    let _cottage_renderable_instance_0 = render_instance
-        .get_renderable(cottage_renderable)
-        .create_instance(transform_0);
+    // let _cottage_renderable_instance_0_idx = render_instance
+    //     .get_renderable(cottage_renderable)
+    //     .create_instance(transform_0);
     // let cottage_renderable_instance_1 = render_instance
     //     .get_renderable(cottage_renderable)
     //     .create_instance(transform_1);
 
-    let _bunny_renderable_instance_0 = render_instance
-        .get_renderable(bunny_renderable)
-        .create_instance(transform_1);
+    // let _bunny_renderable_instance_0_idx = render_instance
+    //     .get_renderable(bunny_renderable)
+    //     .create_instance(transform_1);
 
-    // let rock_assembly_cliffs_renderable_instance_0 = render_instance
-    // .get_renderable(rock_assembly_cliffs_renderable)
-    // .create_instance(transform_2);
+    // let mut bunny_renderable_idx = 0usize;
+    // {
+    //     let mut bunny = render_instance.get_renderable(bunny_renderable);
+    //     for idx in 0..bunny.meshes.len() {
+    //         bunny.update(idx, Matrix4::from_scale(0.0));
+    //     }
+    //     bunny.update(bunny_renderable_idx, transform_1);
+    // };
+
+    //     let _fire_pit_renderable_instance_0 = render_instance
+    //         .get_renderable(fire_pit_renderable)
+    //         .create_instance(transform_2);
 
     let mut camera = Camera::default();
 
@@ -99,6 +128,7 @@ fn main() {
     let mut fps: f64 = 0.0;
 
     let mut dirty_swapchain = true;
+    let mut rebuild = true;
 
     // Used to accumutate input events from the start to the end of a frame
     let mut is_left_clicked = false;
@@ -151,11 +181,12 @@ fn main() {
 
                 // render
                 {
-                    if dirty_swapchain {
+                    if dirty_swapchain || rebuild {
                         let size = window.inner_size();
                         if size.width > 0 && size.height > 0 {
                             // app.recreate_swapchain();
                             render_instance.rebuild();
+                            rebuild = false;
                         } else {
                             return;
                         }
@@ -238,6 +269,22 @@ fn main() {
                     ..
                 } => {
                     wheel_delta = v_lines;
+                }
+                WindowEvent::KeyboardInput {
+                    device_id,
+                    input,
+                    is_synthetic,
+                } => {
+                    //                     if input.state == ElementState::Pressed {
+                    //                         println!("Hello!");
+                    //                         let mut bunny = render_instance.get_renderable(bunny_renderable);
+                    //                         bunny.update(bunny_renderable_idx, Matrix4::from_scale(0.0));
+                    //                         bunny_renderable_idx += 1;
+                    //                         bunny.update(bunny_renderable_idx, transform_1);
+                    //                         // bunny.create_instance(Matrix4::identity());
+                    //
+                    //                         rebuild = true;
+                    //                     }
                 }
                 _ => (),
             },
