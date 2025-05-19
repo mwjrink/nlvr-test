@@ -28,7 +28,7 @@ fn compile_shaders() {
         .unwrap()
         .map(Result::unwrap)
         .filter(|dir| dir.file_type().unwrap().is_file())
-        .filter(|dir| dir.path().extension() != Some(OsStr::new("spv")) && dir.path().extension() != Some(OsStr::new("hlsl")))
+        .filter(|dir| dir.path().extension() != Some(OsStr::new("spv")) && dir.path().extension() != Some(OsStr::new("hlsl")) && dir.path().extension() != Some(OsStr::new("md")))
         .for_each(|dir| {
             let path = dir.path();
             let name = path.file_name().unwrap().to_str().unwrap();
@@ -36,7 +36,7 @@ fn compile_shaders() {
 
             // this is wrong
             // let stage = name.strip_prefix("shader_stage.").unwrap();
-            let output_name = format!("{}.spv", &name);
+            let output_name = format!("../assets/shaders/{}.spv", &name);
 
             let result = Command::new("glslangValidator")
                 .current_dir(&shader_dir_path)

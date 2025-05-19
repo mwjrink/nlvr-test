@@ -8,10 +8,12 @@ build = "build.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-winit = "0.25.0"
+winit = { version = "0.30.1", features = ["wayland", "rwh_06"] }
 cgmath = "0.18.0"
 
-log = "0.4.11"
+raw-window-handle = "0.6.2"
+
+log = "0.4.19"
 simple_logger = "2.1.0"
 
 shrinkwraprs = "0.3.0"
